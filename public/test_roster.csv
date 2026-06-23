@@ -1,0 +1,5 @@
+employeeId,fullName,jobTitle,department,currentSalary,marketMidpoint,performanceRating,hireDate
+EMP001,John Doe,Software Engineer,Engineering,100000,110000,Exceeds,2023-01-15
+EMP002,Jane Smith,Data Analyst,Analytics,85000,90000,Meets,2024-06-01
+EMP003,Bob Johnson,Account Executive,Sales,70000,80000,Needs Improvement,2025-02-10
+EMP004,Alice Williams,Software Engineer,Engineering,145000,120000,Outstanding,2021-11-20
