@@ -58,7 +58,7 @@ export default function PlanningPage() {
         {/* BUDGET MATRIX CAP FIELD */}
         <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
+            <label htmlFor="budget-pool-target" className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
               <Percent className="h-4 w-4 text-gray-500" />
               Global Merit Budget Pool Target
             </label>
@@ -70,6 +70,7 @@ export default function PlanningPage() {
                 <DollarSign className="h-4 w-4 text-gray-400" />
               </div>
               <input
+                id="budget-pool-target"
                 type="number" min="0" max="20" step="0.1"
                 value={globalBudgetPct}
                 onChange={(e) => setGlobalBudgetPct(parseFloat(e.target.value) || 0)}
@@ -86,28 +87,37 @@ export default function PlanningPage() {
           <div className="flex flex-col justify-center border-t md:border-t-0 md:border-l border-gray-200 pt-6 md:pt-0 md:pl-8">
             <div className="flex items-start justify-between">
               <div className="space-y-0.5">
-                <label className="text-sm font-semibold text-gray-900 block">Tenure Proration Strategy</label>
-                <span className="text-xs text-gray-400 block max-w-sm">
+                {/* 1. Changed label to a semantic heading */}
+                <h2 className="text-sm font-semibold text-gray-900 block">
+                  Tenure Proration Strategy
+                </h2>
+                <p className="text-xs text-gray-400 block max-w-sm">
                   Automatically scales recommended increases by 50% for dynamic mid-year new hires.
-                </span>
+                </p>
               </div>
+
+              {/* 2. Added role="switch", aria-checked, and sr-only label text */}
               <button
                 type="button"
+                role="switch"
+                aria-checked={prorateHires}
                 onClick={() => setProrateHires(!prorateHires)}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                  prorateHires ? 'bg-blue-600' : 'bg-gray-200'
-                }`}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${prorateHires ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
               >
-                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${prorateHires ? 'translate-x-5' : 'translate-x-0'}`} />
+                <span className="sr-only">Enable Tenure Proration Strategy</span>
+                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${prorateHires ? 'translate-x-5' : 'translate-x-0'
+                  }`} />
               </button>
             </div>
           </div>
+
         </section>
 
         {/* INTERACTIVE MERIT MATRIX TABLE */}
         <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <div className="mb-6">
-            <h2 className="text-lg font-bold text-gray-900">Merit Increase Matrix Guidelines</h2>
+            <h3 className="text-lg font-bold text-gray-900">Merit Increase Matrix Guidelines</h3>
             <p className="text-xs text-gray-400 mt-1">
               Cross-reference framework strategy. Employees positioned low in their range (Quartile 1) should receive higher base target raises than employees already highly penetrated (Quartile 4).
             </p>
@@ -124,63 +134,100 @@ export default function PlanningPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 font-medium">
+
                 {/* OUTSTANDING ROW */}
                 <tr className="bg-white">
-                  <td className="px-6 py-4 font-bold text-gray-900">Outstanding</td>
+                  <th scope="row" className="px-6 py-4 font-bold text-gray-900">Outstanding</th>
                   {[0, 1, 2].map((idx) => (
                     <td key={`out-${idx}`} className="px-6 py-3 text-center">
+                      <label htmlFor={`input-out-${idx}`} className="sr-only">
+                        Outstanding rating percentage for {['Quartile 1 (CR < 0.80)', 'Quartiles 2 & 3 (0.80 - 1.20)', 'Quartile 4 (CR > 1.20)'][idx]}
+                      </label>
                       <input
-                        type="number" step="0.1" min="0" max="25"
+                        id={`input-out-${idx}`}
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="25"
                         value={matrixRules.outstanding[idx]}
                         onChange={(e) => handleMatrixChange('outstanding', idx, e.target.value)}
                         className="w-16 bg-gray-50 text-center border border-gray-300 rounded p-1 font-semibold text-gray-800"
-                      /> %
+                      />
+                      <span aria-hidden="true"> %</span>
                     </td>
                   ))}
                 </tr>
+
                 {/* EXCEEDS EXPECTATIONS ROW */}
                 <tr className="bg-white">
-                  <td className="px-6 py-4 font-bold text-gray-900">Exceeds Expectations</td>
+                  <th scope="row" className="px-6 py-4 font-bold text-gray-900">Exceeds Expectations</th>
                   {[0, 1, 2].map((idx) => (
                     <td key={`exc-${idx}`} className="px-6 py-3 text-center">
+                      <label htmlFor={`input-exc-${idx}`} className="sr-only">
+                        Exceeds Expectations rating percentage for {['Quartile 1 (CR < 0.80)', 'Quartiles 2 & 3 (0.80 - 1.20)', 'Quartile 4 (CR > 1.20)'][idx]}
+                      </label>
                       <input
-                        type="number" step="0.1" min="0" max="25"
+                        id={`input-exc-${idx}`}
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="25"
                         value={matrixRules.exceedsExpectations[idx]}
                         onChange={(e) => handleMatrixChange('exceedsExpectations', idx, e.target.value)}
                         className="w-16 bg-gray-50 text-center border border-gray-300 rounded p-1 font-semibold text-gray-800"
-                      /> %
+                      />
+                      <span aria-hidden="true"> %</span>
                     </td>
                   ))}
                 </tr>
+
                 {/* MEETS EXPECTATIONS ROW */}
                 <tr className="bg-white">
-                  <td className="px-6 py-4 font-bold text-gray-900">Meets Expectations</td>
+                  <th scope="row" className="px-6 py-4 font-bold text-gray-900">Meets Expectations</th>
                   {[0, 1, 2].map((idx) => (
                     <td key={`met-${idx}`} className="px-6 py-3 text-center">
+                      <label htmlFor={`input-met-${idx}`} className="sr-only">
+                        Meets Expectations rating percentage for {['Quartile 1 (CR < 0.80)', 'Quartiles 2 & 3 (0.80 - 1.20)', 'Quartile 4 (CR > 1.20)'][idx]}
+                      </label>
                       <input
-                        type="number" step="0.1" min="0" max="25"
+                        id={`input-met-${idx}`}
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="25"
                         value={matrixRules.meetsExpectations[idx]}
                         onChange={(e) => handleMatrixChange('meetsExpectations', idx, e.target.value)}
                         className="w-16 bg-gray-50 text-center border border-gray-300 rounded p-1 font-semibold text-gray-800"
-                      /> %
+                      />
+                      <span aria-hidden="true"> %</span>
                     </td>
                   ))}
                 </tr>
+
                 {/* NEEDS IMPROVEMENT ROW (DISABLED) */}
                 <tr className="bg-white opacity-60">
-                  <td className="px-6 py-4 font-bold text-gray-400">Needs Improvement</td>
+                  <th scope="row" className="px-6 py-4 font-bold text-gray-400">Needs Improvement</th>
                   {[0, 1, 2].map((idx) => (
                     <td key={`nee-${idx}`} className="px-6 py-3 text-center">
+                      <label htmlFor={`input-nee-${idx}`} className="sr-only">
+                        Disabled Needs Improvement rating percentage for {['Quartile 1 (CR < 0.80)', 'Quartiles 2 & 3 (0.80 - 1.20)', 'Quartile 4 (CR > 1.20)'][idx]}
+                      </label>
                       <input
-                        type="number" value={0} disabled
+                        id={`input-nee-${idx}`}
+                        type="number"
+                        value={0}
+                        disabled
                         className="w-16 bg-gray-200 text-center border border-gray-300 rounded p-1 text-gray-400"
-                      /> %
+                      />
+                      <span aria-hidden="true"> %</span>
                     </td>
                   ))}
                 </tr>
+
               </tbody>
             </table>
           </div>
+
         </section>
 
         {/* SUBMIT BUTTON */}
