@@ -34,10 +34,7 @@ export default function UploadPage() {
 
       // Extract recommended guidelines using matrix mapping rules
       const rating = row.performanceRating || 'Meets Expectations';
-      const ratingKey = rating === 'Needs Improvement' ? 'needsImprovement' :
-        rating === 'Meets Expectations' || rating === 'Meets' ? 'meetsExpectations' :
-          rating === 'Exceeds Expectations' || rating === 'Exceeds' ? 'exceedsExpectations' : 'outstanding';
-
+      const ratingKey = rating === 'Needs Improvement' ? 'needsImprovement' : rating === 'Meets Expectations' || rating === 'Meets' ? 'meetsExpectations' : rating === 'Exceeds Expectations' || rating === 'Exceeds' ? 'exceedsExpectations' : 'outstanding';
       const ruleRow = currentRules[ratingKey] || [0.0, 0.0, 0.0];
 
       // Match the correct percentile array indexes: Index 0=Q1, 1=Q2/Q3, 2=Q4
@@ -120,22 +117,20 @@ export default function UploadPage() {
       // Prepend your Next.js basePath explicitly for the static fetch asset
       const basePath = '/merit-matrix-app';
       const response = await fetch(`${basePath}/test_roster.csv`);
-
       if (!response.ok) {
         throw new Error(`Could not locate test_roster.csv asset (Status: ${response.status})`);
       }
-
       const blob = await response.blob();
       const mockFile = new File([blob], 'test_roster.csv', { type: 'text/csv' });
-
       handleFileUpload(mockFile);
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred fetching fallback data.');
       setIsLoading(false);
     }
   };
-  // Drag and drop standard browser handlers
-  const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+
+  // Drag and drop standard browser handlers updated to HTMLLabelElement
+  const onDragOver = useCallback((e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
     setIsDragging(true);
   }, []);
@@ -144,7 +139,7 @@ export default function UploadPage() {
     setIsDragging(false);
   }, []);
 
-  const onDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const onDrop = useCallback((e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
@@ -164,7 +159,10 @@ export default function UploadPage() {
     <div className="max-w-4xl mx-auto px-4 py-8 font-sans">
       {/* NAVIGATION LINK ROW */}
       <div className="mb-6">
-        <button onClick={() => router.push('/')} className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+        <button
+          onClick={() => router.push('/')}
+          className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" /> Return to Strategy Setup
         </button>
       </div>
@@ -176,30 +174,56 @@ export default function UploadPage() {
         </p>
       </div>
 
-      {/* DRAG AND DROP ZONE */}
-      <div
+      {/* ACCESSIBLE DRAG AND DROP ZONE */}
+      <label
+        htmlFor="fileInputElement"
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
-        onClick={() => !isLoading && document.getElementById('fileInputElement')?.click()}
-        className={`border-2 border-dashed rounded-2xl p-16 flex flex-col items-center justify-center transition-all duration-200 ${isDragging ? 'border-blue-500 bg-blue-50/60 ring-4 ring-blue-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100/80'
-          } ${isLoading ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
+        onKeyDown={(e) => {
+          if (isLoading) return;
+          // Activate file browser natively on Enter or Space key press
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('fileInputElement')?.click();
+          }
+        }}
+        className={`border-2 border-dashed rounded-2xl p-16 flex flex-col items-center justify-center transition-all duration-200 focus-within:ring-4 focus-within:ring-blue-500/30 focus-within:border-blue-500 outline-none ${isDragging ? 'border-blue-500 bg-blue-50/60 ring-4 ring-blue-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100/80'} ${isLoading ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
+        role="button"
+        tabIndex={isLoading ? -1 : 0}
+        aria-disabled={isLoading}
+        aria-label="Upload corporate CSV roster by dragging and dropping here, or press enter to browse local storage networks"
       >
-        <input type="file" accept=".csv" onChange={onFileSelect} className="hidden" id="fileInputElement" disabled={isLoading} />
+        {/* Screen Reader Announcements for Dynamic Drag States */}
+        <span className="sr-only" aria-live="polite">
+          {isDragging ? 'Ready to drop: corporate CSV roster detected.' : ''}
+        </span>
+
+        {/* Native Hidden File Input */}
+        <input
+          type="file"
+          accept=".csv"
+          onChange={onFileSelect}
+          className="sr-only"
+          id="fileInputElement"
+          disabled={isLoading}
+        />
+
         <div className="flex flex-col items-center text-center">
           {isLoading ? (
-            <Loader2 className="h-14 w-14 text-blue-600 animate-spin mb-4" />
+            <Loader2 className="h-14 w-14 text-blue-600 animate-spin mb-4" aria-hidden="true" />
           ) : (
-            <Upload className={`h-14 w-14 mb-4 transition-transform ${isDragging ? 'text-blue-600 scale-110' : 'text-gray-400'}`} />
+            <Upload className={`h-14 w-14 mb-4 transition-transform ${isDragging ? 'text-blue-600 scale-110' : 'text-gray-400'}`} aria-hidden="true" />
           )}
-          <h3 className="text-lg font-bold text-gray-800 mb-1">
+
+          <div className="text-lg font-bold text-gray-800 mb-1">
             {isLoading ? 'Computing Compensation Parameters...' : 'Drop corporate CSV roster here'}
-          </h3>
+          </div>
           <p className="text-xs text-gray-400 max-w-xs">
             {isLoading ? 'Mapping range percentiles and proration thresholds.' : 'or click to browse local storage networks'}
           </p>
         </div>
-      </div>
+      </label>
 
       {error && (
         <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-semibold">
@@ -217,7 +241,7 @@ export default function UploadPage() {
           <div className="space-y-1 min-w-0 w-full flex-1">
             <div className="flex items-center gap-2 sm:block">
               <FileSpreadsheet className="h-5 w-5 text-blue-600 shrink-0 sm:hidden" />
-              <h4 className="text-sm font-bold text-gray-900">Required Source Schema Architecture</h4>
+              <h2 className="text-sm font-bold text-gray-900">Required Source Schema Architecture</h2>
             </div>
 
             <p className="text-xs text-gray-500 leading-relaxed">
