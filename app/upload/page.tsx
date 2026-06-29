@@ -110,6 +110,30 @@ export default function UploadPage() {
     });
   };
 
+  // Fetch interface linking your local client container to public/test_roster.csv
+  const handleLoadSampleData = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevents triggering the dropzone upload click event
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Prepend your Next.js basePath explicitly for the static fetch asset
+      const basePath = '/merit-matrix-app';
+      const response = await fetch(`${basePath}/test_roster.csv`);
+
+      if (!response.ok) {
+        throw new Error(`Could not locate test_roster.csv asset (Status: ${response.status})`);
+      }
+
+      const blob = await response.blob();
+      const mockFile = new File([blob], 'test_roster.csv', { type: 'text/csv' });
+
+      handleFileUpload(mockFile);
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred fetching fallback data.');
+      setIsLoading(false);
+    }
+  };
   // Drag and drop standard browser handlers
   const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -162,14 +186,12 @@ export default function UploadPage() {
           } ${isLoading ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
       >
         <input type="file" accept=".csv" onChange={onFileSelect} className="hidden" id="fileInputElement" disabled={isLoading} />
-
         <div className="flex flex-col items-center text-center">
           {isLoading ? (
             <Loader2 className="h-14 w-14 text-blue-600 animate-spin mb-4" />
           ) : (
             <Upload className={`h-14 w-14 mb-4 transition-transform ${isDragging ? 'text-blue-600 scale-110' : 'text-gray-400'}`} />
           )}
-
           <h3 className="text-lg font-bold text-gray-800 mb-1">
             {isLoading ? 'Computing Compensation Parameters...' : 'Drop corporate CSV roster here'}
           </h3>
@@ -185,22 +207,43 @@ export default function UploadPage() {
         </div>
       )}
 
-      {/* SAMPLE FILE REFERENCE CARD */}
-      <div className="mt-8 border border-gray-200 bg-white rounded-2xl p-4 sm:p-6 shadow-sm flex items-start gap-4 w-full">
-        <FileSpreadsheet className="h-6 w-6 text-blue-600 shrink-0 mt-0.5" />
+      {/* SAMPLE FILE REFERENCE CARD WITH FETCH TRIGGER */}
+      <div className="mt-8 border border-gray-200 bg-white rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-start justify-between gap-6 w-full overflow-hidden">
 
-        {/* FIX: Added min-w-0 here to force the text wrapper to respect screen boundaries */}
-        <div className="space-y-1 min-w-0 flex-1">
-          <h4 className="text-sm font-bold text-gray-900">Required Source Schema Architecture</h4>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            To ensure calculations succeed, confirm your file contains columns named exactly like this baseline sample:
-          </p>
+        {/* Left Section: Content wrapper with bounds restrictions */}
+        <div className="flex flex-col sm:flex-row items-start gap-4 min-w-0 flex-1">
+          <FileSpreadsheet className="h-6 w-6 text-blue-600 shrink-0 mt-0.5 hidden sm:block" />
 
-          {/* FIX: Added block and w-full alongside overflow-x-scroll */}
-          <div className="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-2.5 font-mono text-[11px] text-gray-600 select-all block w-full overflow-x-scroll whitespace-nowrap pb-3">
-            employeeId,fullName,jobTitle,department,currentSalary,marketMidpoint,performanceRating,hireDate
+          <div className="space-y-1 min-w-0 w-full flex-1">
+            <div className="flex items-center gap-2 sm:block">
+              <FileSpreadsheet className="h-5 w-5 text-blue-600 shrink-0 sm:hidden" />
+              <h4 className="text-sm font-bold text-gray-900">Required Source Schema Architecture</h4>
+            </div>
+
+            <p className="text-xs text-gray-500 leading-relaxed">
+              To ensure calculations succeed, confirm your file contains columns named exactly like this baseline sample:
+            </p>
+
+            {/* Code box setup to handle overflow neatly without breaking parent layout */}
+            <div className="mt-3 bg-gray-50 border border-gray-200 rounded-lg p-2.5 font-mono text-[11px] text-gray-600 select-all block w-full overflow-x-auto whitespace-nowrap pb-3">
+              employeeId,fullName,jobTitle,department,currentSalary,marketMidpoint,performanceRating,hireDate
+            </div>
           </div>
         </div>
+
+        {/* Right Section: Stacking action button */}
+        <div className="shrink-0 w-full sm:w-auto pt-2 sm:pt-0 border-t border-gray-100 sm:border-0">
+          <button
+            type="button"
+            disabled={isLoading}
+            onClick={handleLoadSampleData}
+            className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 border border-gray-300 shadow-sm text-xs font-semibold rounded-xl text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition gap-2"
+          >
+            <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+            Try with Sample Data
+          </button>
+        </div>
+
       </div>
 
     </div>
