@@ -95,7 +95,7 @@ export default function DashboardPage() {
                     >
                         <ArrowLeft className="mr-1.5 h-3.5 w-3.5" /> Return to Upload
                     </button>
-                    <h2 className="text-2xl font-black text-gray-900 mt-2">Merit Allocation Matrix Modeling</h2>
+                    <h1 className="text-2xl font-black text-gray-900 mt-2">Merit Allocation Matrix Modeling</h1>
                 </div>
 
                 <button
@@ -118,7 +118,7 @@ export default function DashboardPage() {
                 /* EMPTY STATE RENDER FALLBACK */
                 <div className="bg-white border rounded-2xl p-12 text-center max-w-xl mx-auto shadow-sm">
                     <HelpCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-base font-bold text-gray-900">No Organizational Roster Loaded</h3>
+                    <h2 className="text-base font-bold text-gray-900">No Organizational Roster Loaded</h2>
                     <p className="text-xs text-gray-500 mt-1 mb-6">You must populate employee roster items through the file entry workspace first.</p>
                     <button onClick={() => router.push('/upload')} className="px-4 py-2 bg-gray-100 text-gray-700 font-semibold text-sm rounded-lg hover:bg-gray-200">Go to Upload</button>
                 </div>
@@ -147,9 +147,10 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
-                            <h4 className="text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-4">Funding Distribution Analysis</h4>
+                            <h2 className="text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-4">Funding Distribution Analysis</h2>
                             <div className="h-56 relative flex justify-center items-center">
-                                <Pie data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
+                                {/* Accessibility with ChartJS elements is tough - need to recreate and hide elements - aria-label isn't enough */}
+                                <Pie aria-label="Allocated Funds and Remaining Balance Pie Chart" data={chartData} options={{ responsive: true, maintainAspectRatio: false }} />
                             </div>
                         </div>
                     </div>
@@ -201,18 +202,41 @@ export default function DashboardPage() {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 text-emerald-700 font-extrabold">
-                                                    {emp.recommendedRaisePct}%
-                                                    {emp.isProrated && <span className="text-[10px] text-amber-600 bg-amber-50 font-bold px-1.5 py-0.5 rounded ml-1.5">Prorated</span>}
+                                                    {emp.recommendedRaisePct}%{" "}
+                                                    {emp.isProrated && (
+                                                        <span className="text-[10px] text-amber-600 bg-amber-50 font-bold px-1.5 py-0.5 rounded ml-1.5">
+                                                            Prorated
+                                                        </span>
+                                                    )}
                                                 </td>
+
                                                 <td className="px-6 py-4 text-center">
+                                                    {/* 1. UNIQUE LABEL LINK: Added employeeId to make it unique per row */}
+                                                    <label htmlFor={`raise-${emp.employeeId}`} className="sr-only">
+                                                        Recommended Raise Percentage for {emp.fullName || "Employee"}
+                                                    </label>
+
                                                     <input
-                                                        type="number" step="0.1" min="0" max="30" placeholder={`${emp.recommendedRaisePct}`}
-                                                        value={hasOverride ? emp.manualOverrideRaisePct : ''}
+                                                        // 2. UNIQUE ID: Matches the htmlFor above
+                                                        id={`raise-${emp.employeeId}`}
+                                                        name={`recommendedRaisePct-${emp.employeeId}`} // Helpful if using React 19 FormData
+                                                        type="number"
+                                                        step="0.1"
+                                                        min="0"
+                                                        max="30"
+                                                        placeholder={`${emp.recommendedRaisePct}`}
+                                                        // 3. CONTROLLED VALUE: Bind directly to the state variable tracking the text
+                                                        value={emp.manualOverrideRaisePct ?? ''}
                                                         onChange={(e) => handleOverrideChange(emp.employeeId, e.target.value)}
-                                                        className={`w-16 border text-center rounded p-1 text-xs font-bold focus:outline-none transition-all ${inputViolation ? 'border-red-600 text-red-700 bg-red-50 ring-2 ring-red-100' : hasOverride ? 'border-orange-400 text-orange-700 bg-orange-50/30' : 'border-gray-300 text-gray-800'
+                                                        className={`w-16 border text-center rounded p-1 text-xs font-bold focus:outline-none transition-all ${inputViolation
+                                                                ? 'border-red-600 text-red-700 bg-red-50 ring-2 ring-red-100'
+                                                                : hasOverride
+                                                                    ? 'border-orange-400 text-orange-700 bg-orange-50/30'
+                                                                    : 'border-gray-300 text-gray-800'
                                                             }`}
                                                     />
                                                 </td>
+
                                             </tr>
                                         );
                                     })}
@@ -258,8 +282,9 @@ export default function DashboardPage() {
                                                 </div>
 
                                                 <div className="flex items-center gap-2">
-                                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wide">Override:</label>
+                                                    <label htmlFor={`override-${emp.employeeId}`} className="sr-only">Override:</label>
                                                     <input
+                                                        id={`override-${emp.employeeId}`}
                                                         type="number" step="0.1" min="0" max="30" placeholder={`${emp.recommendedRaisePct}`}
                                                         value={hasOverride ? emp.manualOverrideRaisePct : ''}
                                                         onChange={(e) => handleOverrideChange(emp.employeeId, e.target.value)}
