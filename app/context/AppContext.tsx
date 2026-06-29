@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, use, useState } from 'react';
 import { Employee, MatrixRules } from '../../types';
 
 interface AppState {
@@ -16,7 +16,7 @@ interface AppState {
 
 const AppContext = createContext<AppState | undefined>(undefined);
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
+export function AppProvider({ children }: { readonly children: React.ReactNode }) {
   const [globalBudgetPct, setGlobalBudgetPct] = useState<number>(3.5);
   const [prorateHires, setProrateHires] = useState<boolean>(true);
   const [roster, setRoster] = useState<Employee[]>([]);
@@ -28,19 +28,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <AppContext.Provider value={{
+    <AppContext value={{
       matrixRules, setMatrixRules,
       globalBudgetPct, setGlobalBudgetPct,
       prorateHires, setProrateHires,
       roster, setRoster
     }}>
       {children}
-    </AppContext.Provider>
+    </AppContext>
   );
 }
 
 export function useAppState() {
-  const context = useContext(AppContext);
+  const context = use(AppContext);
   if (!context) throw new Error('useAppState must be used inside an AppProvider');
   return context;
 }
