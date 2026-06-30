@@ -25,14 +25,13 @@ export default function UploadPage() {
       // Calculate individual compa-ratios
       const compaRatio = marketMidpoint > 0 ? currentSalary / marketMidpoint : 0;
 
-      // Categorize salary position by corporate range quartiles
-      let quartile: 1 | 2 | 3 | 4 = 2;
+      // Categorize salary position by corporate range quartiles (Removed redundant initialization)
+      let quartile: 1 | 2 | 3 | 4;
       if (compaRatio < 0.80) quartile = 1;
-      else if (compaRatio >= 0.80 && compaRatio < 1.0) quartile = 2;
-      else if (compaRatio >= 1.0 && compaRatio <= 1.20) quartile = 3;
+      else if (compaRatio < 1.0) quartile = 2;
+      else if (compaRatio <= 1.20) quartile = 3;     
       else quartile = 4;
 
-      // Extract recommended guidelines using matrix mapping rules
       // Map the performance rating to the correct MatrixRules key
       const rating = row.performanceRating || 'Meets Expectations';
       let ratingKey: keyof MatrixRules;
