@@ -148,8 +148,8 @@ export default function UploadPage() {
     }
   };
 
-  // Drag and drop standard browser handlers updated to HTMLLabelElement
-  const onDragOver = useCallback((e: React.DragEvent<HTMLLabelElement>) => {
+  // Drag and drop standard browser handlers updated to HTMLFormElement
+  const onDragOver = useCallback((e: React.DragEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsDragging(true);
   }, []);
@@ -158,7 +158,7 @@ export default function UploadPage() {
     setIsDragging(false);
   }, []);
 
-  const onDrop = useCallback((e: React.DragEvent<HTMLLabelElement>) => {
+  const onDrop = useCallback((e: React.DragEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
@@ -193,32 +193,25 @@ export default function UploadPage() {
         </p>
       </div>
 
-      {/* ACCESSIBLE DRAG AND DROP ZONE */}
-      <label
-        htmlFor="fileInputElement"
+      <form
+        onSubmit={(e) => e.preventDefault()}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
-        onKeyDown={(e) => {
-          if (isLoading) return;
-          // Activate file browser natively on Enter or Space key press
-          if (e.key === ' ' || e.key === 'Enter') {
-            e.preventDefault();
-            document.getElementById('fileInputElement')?.click();
-          }
-        }}
-        className={`border-2 border-dashed rounded-2xl p-16 flex flex-col items-center justify-center transition-all duration-200 focus-within:ring-4 focus-within:ring-blue-500/30 focus-within:border-blue-500 outline-none ${isDragging ? 'border-blue-500 bg-blue-50/60 ring-4 ring-blue-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100/80'} ${isLoading ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
-        role="button"
-        tabIndex={isLoading ? -1 : 0}
-        aria-disabled={isLoading}
-        aria-label="Upload corporate CSV roster by dragging and dropping here, or press enter to browse local storage networks"
+        className={`relative border-2 border-dashed rounded-2xl p-16 flex flex-col items-center justify-center transition-all duration-200 ${isDragging ? 'border-blue-500 bg-blue-50/60 ring-4 ring-blue-50' : 'border-gray-300 bg-gray-50'
+          }`}
       >
         {/* Screen Reader Announcements for Dynamic Drag States */}
         <span className="sr-only" aria-live="polite">
           {isDragging ? 'Ready to drop: corporate CSV roster detected.' : ''}
         </span>
 
-        {/* Native Hidden File Input */}
+        {/* Hidden Accessible Form Label targeting the file input */}
+        <label htmlFor="fileInputElement" className="sr-only">
+          Upload corporate CSV roster
+        </label>
+
+        {/* Hidden Native Input */}
         <input
           type="file"
           accept=".csv"
@@ -228,21 +221,29 @@ export default function UploadPage() {
           disabled={isLoading}
         />
 
-        <div className="flex flex-col items-center text-center">
+        {/* Semantic Action Target */}
+        <button
+          type="button"
+          disabled={isLoading}
+          onClick={() => document.getElementById('fileInputElement')?.click()}
+          aria-label="Upload corporate CSV roster by dragging and dropping into this zone, or click to browse local files"
+          className={`w-full h-full flex flex-col items-center text-center outline-none focus-visible:ring-4 focus-visible:ring-blue-500/30 focus-visible:border-blue-500 rounded-xl ${isLoading ? 'cursor-not-allowed opacity-70' : 'cursor-pointer group'
+            }`}
+        >
           {isLoading ? (
             <Loader2 className="h-14 w-14 text-blue-600 animate-spin mb-4" aria-hidden="true" />
           ) : (
-            <Upload className={`h-14 w-14 mb-4 transition-transform ${isDragging ? 'text-blue-600 scale-110' : 'text-gray-400'}`} aria-hidden="true" />
+            <Upload className={`h-14 w-14 mb-4 transition-transform group-hover:scale-105 ${isDragging ? 'text-blue-600 scale-110' : 'text-gray-400 group-hover:text-gray-600'
+              }`} aria-hidden="true" />
           )}
-
           <div className="text-lg font-bold text-gray-800 mb-1">
             {isLoading ? 'Computing Compensation Parameters...' : 'Drop corporate CSV roster here'}
           </div>
           <p className="text-xs text-gray-400 max-w-xs">
-            {isLoading ? 'Mapping range percentiles and proration thresholds.' : 'or click to browse local storage networks'}
+            {isLoading ? 'Mapping range percentiles and proration thresholds.' : 'or click to browse local files'}
           </p>
-        </div>
-      </label>
+        </button>
+      </form>
 
       {error && (
         <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-semibold">
