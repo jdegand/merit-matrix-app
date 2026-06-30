@@ -33,8 +33,27 @@ export default function UploadPage() {
       else quartile = 4;
 
       // Extract recommended guidelines using matrix mapping rules
+      // Map the performance rating to the correct MatrixRules key
       const rating = row.performanceRating || 'Meets Expectations';
-      const ratingKey = rating === 'Needs Improvement' ? 'needsImprovement' : rating === 'Meets Expectations' || rating === 'Meets' ? 'meetsExpectations' : rating === 'Exceeds Expectations' || rating === 'Exceeds' ? 'exceedsExpectations' : 'outstanding';
+      let ratingKey: keyof MatrixRules;
+
+      switch (rating) {
+        case 'Needs Improvement':
+          ratingKey = 'needsImprovement';
+          break;
+        case 'Meets Expectations':
+        case 'Meets':
+          ratingKey = 'meetsExpectations';
+          break;
+        case 'Exceeds Expectations':
+        case 'Exceeds':
+          ratingKey = 'exceedsExpectations';
+          break;
+        default:
+          ratingKey = 'outstanding';
+      }
+
+      // Extract recommended guidelines using matrix mapping rules
       const ruleRow = currentRules[ratingKey] || [0.0, 0.0, 0.0];
 
       // Match the correct percentile array indexes: Index 0=Q1, 1=Q2/Q3, 2=Q4
